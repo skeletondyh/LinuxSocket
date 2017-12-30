@@ -25,14 +25,9 @@ void * recvMsg(void *) {
             if(strcmp(recvmsg.content, "LoginSuccess!") == 0) {
                 //pthread_mutex_lock(&mutex);
                 login = true;
+                memset(localname, 0, sizeof(localname));
                 strcpy(localname, recvmsg.usrname);
-                //printf("ChatRoom >> ");
-                //pthread_mutex_unlock(&mutex);
             }
-            //pthread_mutex_unlock(&mutex);
-            /*if(login && !chat) {
-                printf("ChatRoom >> ");
-            }*/
         }
         else if(recvmsg.type == SIGNIN) {
             printf("FromServer: %s\n", recvmsg.content);
@@ -59,7 +54,7 @@ void * recvMsg(void *) {
             printf("FromServer: %s\n", recvmsg.content);
             //pthread_mutex_lock(&mutex);
             login = false;
-            memset(localname, 0, sizeof(localname));
+            //memset(localname, 0, sizeof(localname));
             //pthread_mutex_unlock(&mutex);
         }
         else if(recvmsg.type == ADD) {
@@ -82,7 +77,7 @@ void * recvMsg(void *) {
             while(temp < totalsize) {
                 temp += read(sockfd, recvBuf, MAX_BUFFER);
             }
-            printf("%s\n", Buf + 4);
+            printf("%s", Buf + 4);
         }
         else if(recvmsg.type == SENDMSG) {
             printf("From%s: %s\n", recvmsg.usrname, recvmsg.content);
@@ -198,20 +193,24 @@ int main(int argc, char *argv[])
             scanf(" %s %s", sendmsg.usrname, sendmsg.password);
             sendmsg.type = LOGIN;
             write(sockfd, &sendmsg, sizeof(Message));
-            /*read(sockfd, receivebuf, MAX_LENGTH);
-            if(strcmp(receivebuf, "LoginSuccess!") == 0) {
-                login = 1;
-                strcpy(localname, sendmsg.usrname);
-            }
-            printf("%s\n", receivebuf);*/
         }
         else if(strcmp(cmd, "signin") == 0) {
             memset((void *)&sendmsg, 0, sizeof(Message));
             scanf(" %s %s", sendmsg.usrname, sendmsg.password);
             sendmsg.type = SIGNIN;
             write(sockfd, &sendmsg, sizeof(Message));
-            /*read(sockfd, receivebuf, MAX_LENGTH);
-            printf("%s\n", receivebuf);*/
+        }
+        else if(strcmp(cmd, "recvmsg") == 0) {
+            memset((void *) &sendmsg, 0, sizeof(Message));
+            sendmsg.type = RECVMSG;
+            strcpy(sendmsg.usrname, localname);
+            write(sockfd, &sendmsg, sizeof(Message));
+        }
+        else if(strcmp(cmd, "recvfile") == 0) {
+            memset((void *) &sendmsg, 0, sizeof(Message));
+            sendmsg.type = RECVFILE;
+            strcpy(sendmsg.usrname, localname);
+            write(sockfd, &sendmsg, sizeof(Message));
         }
         else
             if(!login) {
@@ -311,14 +310,15 @@ int main(int argc, char *argv[])
                         }
                         fclose(fp);
                     }
-                    else if(strcmp(cmd, "recvmsg") == 0) {
-                        memset((void *) &sendmsg, 0, sizeof(Message));
-                        sendmsg = RECVMSG;
-                        strcpy(sendmsg.usrname, localname);
-                        write(sockfd, &sendmsg, sizeof(Message));
-                    }
                 }
+                /*else if(strcmp(cmd, "recvmsg") == 0) {
+                    memset((void *) &sendmsg, 0, sizeof(Message));
+                    sendmsg.type = RECVMSG;
+                    strcpy(sendmsg.usrname, localname);
+                    write(sockfd, &sendmsg, sizeof(Message));
+                }*/
             }
+        
     }
 
 

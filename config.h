@@ -40,7 +40,8 @@ enum MessageType{
     SENDMSG,
     SENDFILE,
     QUIT,
-    RECVMSG
+    RECVMSG,
+    RECVFILE
 };
 
 typedef struct{

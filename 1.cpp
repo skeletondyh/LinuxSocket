@@ -11,9 +11,6 @@ pthread_mutex_t mutex;
 
 void * handleRequest(void *fd) {
 
-    // 专门用于传送消息的缓冲区
-    //char msgbuf[MAX_LENGTH];
-
     char recvBuf[MAX_BUFFER];
 
     int psockfd = * ((int *) fd);
@@ -35,6 +32,7 @@ void * handleRequest(void *fd) {
             string temp = receivemsg.usrname;
             cout << "LOGIN Convert to string: " << temp << endl;
             if(UserInfo.find(temp) != UserInfo.end()) {
+                cout << "login size: " << UserOL.size() << endl; 
                 if(UserOL.find(temp) != UserOL.end()) {
                     sscanf("AlreadyOnline!", "%s", sendmsg.content);
                     printf("%s\n", sendmsg.content);
@@ -149,17 +147,25 @@ void * handleRequest(void *fd) {
             cout << "SENDMSG Convert to string: " << temp << endl;
             string who = UserInfo[temp]->chatwith->name;
             string cont = receivemsg.content;
-            if(UserInfo[who]->login == true)
+            if(UserInfo[who]->login == true) {
                 write(UserOL[who], &receivemsg, sizeof(Message));
+                cout << "Comeheretrue" << endl;
+            }
             else {
                 pthread_mutex_lock(&mutex);
                 map<string, string>::iterator iter;
                 if((iter = offlinemsg[who].find(temp)) == offlinemsg[who].end()) {
-                    offlinemsg[who].insert(pair<string, string>(temp, init));
+                    cout << "First Insert" << endl;
+                    cout << who << endl;
+                    cout << temp << endl;
+                    cout << cont << endl;
+                    offlinemsg[who].insert(pair<string, string>(temp, cont));
+                    cout << "count " << offlinemsg[who].size() << endl;
                 }
                 else {
                     iter->second += "\n";
                     iter->second += cont;
+                    cout << iter->second;
                 }
                 pthread_mutex_unlock(&mutex);
             }
@@ -167,17 +173,24 @@ void * handleRequest(void *fd) {
         }
         else if(receivemsg.type == RECVMSG) {
             string temp = receivemsg.usrname;
+            cout << "RECVMSG" << temp << endl;;
             sendmsg.type = RECVMSG;
             write(psockfd, &sendmsg, sizeof(Message));
             string s;
             int length;
+            cout << "sendcount " << offlinemsg[temp].size() << endl;
+            pthread_mutex_lock(&mutex);
             map<string, string>::iterator iter;
             for(iter = offlinemsg[temp].begin(); iter != offlinemsg[temp].end(); iter++) {
-                s = s + "From";
+                s = s + "\nFrom ";
+                cout << iter->first;
                 s = s + iter->first;
                 s = s + "\n";
+                cout << iter->second;
                 s = s + iter->second;
+                s = s + "\n";
             }
+            pthread_mutex_unlock(&mutex);
             length = s.length();
             char *tosend = new char[4 + length + 1];
             *( (int *) tosend) = length;
@@ -200,7 +213,6 @@ void * handleRequest(void *fd) {
                 if(length == totallength)
                     break;
             }
-            //printf("Total Size: %d\n", length);
         }
         else if(receivemsg.type == SEARCH) {
             sendmsg.type = SEARCH;
@@ -341,9 +353,6 @@ int main()
 
         pthread_create(&threads[numOL], NULL, handleRequest, (void *)&resfd);
         numOL += 1;
-        //size = read(resfd, buffer, MAX_BUFFER);
-        //printf("Received: %lu Bytes\n", size);
-        //printf("%s\n", buffer);
     }
 
     pthread_mutex_destroy(&mutex);
