@@ -198,21 +198,75 @@ void * handleRequest(void *fd) {
             send(psockfd, tosend, 4 + length + 1, MSG_WAITALL);
             delete[] tosend; 
         }
+        else if(receivemsg.type == RECVFILE) {
+            string temp = receivemsg.usrname;
+            cout << "Receive file of " << temp << endl;;
+            sendmsg.type = RECVMSG;
+            write(psockfd, &sendmsg, sizeof(Message));
+            string s;
+            int length;
+            //cout << "sendcount " << offlinemsg[temp].size() << endl;
+            pthread_mutex_lock(&mutex);
+            map<string, string>::iterator iter;
+            for(iter = offlinedoc[temp].begin(); iter != offlinedoc[temp].end(); iter++) {
+                s = s + "\nFrom ";
+                //cout << iter->first;
+                s = s + iter->first;
+                s = s + "\n";
+                //cout << iter->second;
+                s = s + iter->second;
+                s = s + "\n";
+            }
+            pthread_mutex_unlock(&mutex);
+            length = s.length();
+            char *tosend = new char[4 + length + 1];
+            *( (int *) tosend) = length;
+            strcpy(tosend + 4, s.data());
+            send(psockfd, tosend, 4 + length + 1, MSG_WAITALL);
+            delete[] tosend; 
+        }
         else if(receivemsg.type == SENDFILE) {
             int totallength = receivemsg.length;
             string temp = receivemsg.usrname;
             string who = UserInfo[temp]->chatwith->name;
-            write(UserOL[who], &receivemsg, sizeof(Message));
+            string filename = receivemsg.content;
             int length = 0;
             int temp1;
+            FILE * fp = NULL;
+            bool login = false;
+            if(UserInfo[who]->login == true) {
+                write(UserOL[who], &receivemsg, sizeof(Message));
+                login = true;
+            }
+            else {
+                fp = fopen(receivemsg.content, "wb");
+                pthread_mutex_lock(&mutex);
+                map<string, string>::iterator iter;
+                if((iter = offlinedoc[who].find(temp)) == offlinedoc[who].end()) {
+                    offlinedoc[who].insert(pair<string, string>(temp, filename));
+                }
+                else {
+                    iter->second += "\n";
+                    iter->second += filename;
+                    cout << iter->second;
+                }
+                pthread_mutex_unlock(&mutex);
+            }
+            //int length = 0;
+            //int temp1;
             while((temp1 = read(psockfd, recvBuf, MAX_BUFFER)) > 0) {
                 length += temp1;
                 printf("%d\n", length);
-                write(UserOL[who], recvBuf, temp1);
+                if(login)
+                    write(UserOL[who], recvBuf, temp1);
+                else
+                    fwrite(recvBuf, sizeof(char), temp1, fp);
                 memset(recvBuf, 0, sizeof(recvBuf));
                 if(length == totallength)
                     break;
             }
+
+            fclose(fp);
         }
         else if(receivemsg.type == SEARCH) {
             sendmsg.type = SEARCH;

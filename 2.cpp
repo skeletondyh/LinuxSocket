@@ -63,7 +63,7 @@ void * recvMsg(void *) {
         else if(recvmsg.type == CHAT) {
             printf("FromServer: %s\n", recvmsg.content);
         }
-        else if(recvmsg.type == RECVMSG) {
+        else if(recvmsg.type == RECVMSG || recvmsg.type == RECVFILE) {
             memset(recvBuf, 0, sizeof(recvBuf));
             int totalsize = 0;
             int temp;
