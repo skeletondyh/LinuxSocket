@@ -1,0 +1,69 @@
+%!TEX program = xelatex
+\documentclass[11pt, a4paper, titlepage]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% fonts
+% \usepackage{xeCJK}
+% \setCJKmainfont[BoldFont=SimHei]{SimSun}
+% \setCJKfamilyfont{hei}{SimHei}
+% \setCJKfamilyfont{kai}{KaiTi}
+% \setCJKfamilyfont{fang}{FangSong}
+% \newcommand{\hei}{\CJKfamily{hei}}
+% \newcommand{\kai}{\CJKfamily{kai}}
+% \newcommand{\fang}{\CJKfamily{fang}}
+%
+\usepackage[UTF8,heading=false,scheme=plain]{ctex}
+% style
+\usepackage[top=2.54cm, bottom=2.54cm, left=3.18cm, right=3.18cm]{geometry}
+\linespread{1.5}
+\usepackage{indentfirst}
+\parindent 2em
+\punctstyle{quanjiao}
+\renewcommand{\today}{\number\year 年 \number\month 月 \number\day 日}
+
+% figures and tables
+\usepackage{graphicx}
+\usepackage[font={bf, footnotesize}, textfont=md]{caption}
+\makeatletter
+    \newcommand\fcaption{\def\@captype{figure}\caption}
+    \newcommand\tcaption{\def\@captype{table}\caption}
+\makeatother
+\usepackage{booktabs}
+\renewcommand\figurename{图}
+\renewcommand\tablename{表}
+\newcommand{\fref}[1]{\textbf{图 \ref{#1}}}
+\newcommand{\tref}[1]{\textbf{表 \ref{#1}}}
+\newcommand{\tabincell}[2]{\begin{tabular}{@{}#1@{}}#2\end{tabular}} % multiply lines in one grid
+\usepackage{longtable} % long table
+
+\usepackage{listings}
+\lstset{basicstyle=\ttfamily}
+
+\usepackage{xcolor}
+\renewcommand{\r}{\color{red}}
+\usepackage{tabulary}
+\usepackage{url}
+\usepackage{hyperref}
+
+% start of document
+\title{\textbf{简易版“微信”实验报告}}
+\author{
+    丁雨晖 \quad 计54 \quad 2015010866
+}
+\date{\today}
+
+% -----------------start here------------------%
+\begin{document}
+
+\maketitle
+
+\newpage
+
+\input{introduction}
+\input{feature}
+\input{detail}
+\input{question}
+
+\end{document}
